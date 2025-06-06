@@ -40,5 +40,4 @@ jobs:
                   DBT_PROD_KEYFILE: /tmp/service-account.json
 
             - name: Run dbt commands
-              run: dbt debug --target prod
-                  dbt build --target prod
+              run: dbt build --target prod
