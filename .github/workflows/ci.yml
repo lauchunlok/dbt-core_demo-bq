@@ -26,8 +26,10 @@ jobs:
             # - name: Copy profiles.yml
             #   run: |
             #       echo "${{ secrets.DBT_PROFILES }}" > profiles.yml
+
+            
             - name: Check connection
-            run: dbt debug
+                run: dbt debug
 
             - name: Install dbt dependencies
             run: dbt deps
