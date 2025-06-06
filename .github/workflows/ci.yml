@@ -27,12 +27,12 @@ jobs:
             #   run: |
             #       echo "${{ secrets.DBT_PROFILES }}" > profiles.yml
 
-            
+
             - name: Check connection
                 run: dbt debug
 
             - name: Install dbt dependencies
-            run: dbt deps
+                run: dbt deps
 
             - name: Write service account key
               run: |
