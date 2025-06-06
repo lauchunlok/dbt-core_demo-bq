@@ -9,36 +9,48 @@ jobs:
         runs-on: ubuntu-latest
 
         env:
-            DBT_PROD_KEYFILE: ${{ secrets.DBT_PROD_KEYFILE }}
+            DBT_GCP_PROJECT_ID: ${{ secrets.DBT_GCP_PROJECT_ID }}
 
         steps:
-            - uses: actions/checkout@v3
+            - name: Checkout repo
+              uses: actions/checkout@v3
 
             - name: Set up Python
               uses: actions/setup-python@v4
               with:
                   python-version: "3.11"
 
-            - name: Install dbt dependencies
+            - name: Install dbt
               run: |
                   pip install dbt-core dbt-bigquery
-                  dbt deps
+
+            - name: Install dbt dependencies
+              run: dbt deps
+
+            - name: Write service account JSON to file
+              run: |
+                  echo '${{ secrets.DBT_PROD_KEYFILE }}' > /tmp/service_account.json
 
             - name: Set up dbt profile
               run: |
                   mkdir -p ~/.dbt
-                  echo -e "${DBT_PROFILES_YML}" > ~/.dbt/profiles.yml
-              env:
-                  DBT_PROFILES_YML: ${{ secrets.DBT_PROFILES_YML }}
+                  cat <<EOF > ~/.dbt/profiles.yml
+                  dbt_core_bigquery:
+                    target: dev
+                    outputs:
+                      dev:
+                        type: bigquery
+                        method: service-account
+                        project: ${{ secrets.DBT_GCP_PROJECT_ID }}
+                        dataset: dbt_prod
+                        location: US
+                        threads: 4
+                        job_execution_timeout_seconds: 300
+                        job_retries: 1
+                        priority: interactive
+                        keyfile: /tmp/service_account.json
+                  EOF
+                  chmod 600 ~/.dbt/profiles.yml
 
-            - name: Set up prod keyfile
-              run: |
-                  echo "${{ secrets.DBT_PROD_KEYFILE }}" | base64 -d > /tmp/service-account.json
-              env:
-                  DBT_PROD_KEYFILE: /tmp/service-account.json
-            - name: Debug dbt profile
-              run: |
-                  echo "===== ~/.dbt/profiles.yml ====="
-                  cat ~/.dbt/profiles.yml
-            - name: Run dbt commands
-              run: dbt build --target prod
+            - name: Run dbt build
+              run: dbt build --target dev
