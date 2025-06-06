@@ -19,12 +19,10 @@ jobs:
               with:
                   python-version: "3.11"
 
-            - name: Install dependencies
+            - name: Install dbt dependencies
               run: |
                   pip install dbt-core dbt-bigquery
-
-            - name: Install dbt dependencies
-              run: dbt deps
+                  dbt deps
 
             - name: Set up dbt profile
               run: |
@@ -38,6 +36,9 @@ jobs:
                   echo "${{ secrets.DBT_PROD_KEYFILE }}" | base64 -d > /tmp/service-account.json
               env:
                   DBT_PROD_KEYFILE: /tmp/service-account.json
-
+            - name: Debug dbt profile
+              run: |
+                  echo "===== ~/.dbt/profiles.yml ====="
+                  cat ~/.dbt/profiles.yml
             - name: Run dbt commands
               run: dbt build --target prod
