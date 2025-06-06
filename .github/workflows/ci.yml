@@ -1,0 +1,38 @@
+name: CI
+
+on:
+    pull_request:
+        branches: [main]
+
+jobs:
+    dbt-build:
+        runs-on: ubuntu-latest
+
+        env:
+            DBT_PROD_KEYFILE: ${{ secrets.DBT_PROD_KEYFILE }}
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.11"
+
+            - name: Install dependencies
+              run: |
+                  pip install dbt-core dbt-bigquery
+
+            - name: Copy profiles.yml
+              run: |
+                  echo "${{ secrets.DBT_PROFILES }}" > profiles.yml
+
+            - name: Write service account key
+              run: |
+                  echo "${DBT_PROD_KEYFILE}" > /tmp/prod_key.json
+
+            - name: Run dbt commands
+              run: |
+                  export DBT_PROD_KEYFILE=/tmp/prod_key.json
+                  dbt debug --target prod
+                  dbt build --target prod
