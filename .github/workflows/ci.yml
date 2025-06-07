@@ -84,4 +84,4 @@ jobs:
               run: |
                   source dbt_bigquery_venv/bin/activate # Activate venv
                   # Ensure the --profiles-dir and --target match your setup
-                  dbt build --profiles-dir /home/runner/.dbt --target dev
+                  dbt build --profiles-dir /home/runner/.dbt --target dev --debug
