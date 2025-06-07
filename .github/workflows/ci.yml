@@ -9,8 +9,7 @@ jobs:
         runs-on: ubuntu-latest
 
         env:
-            DBT_GCP_PROJECT_ID: ${{ secrets.DBT_GCP_PROJECT_ID }}
-            DBT_PROFILES_DIR: .
+            BT_PROFILES_DIR: /home/runner/.dbt/
 
         steps:
             # Step 1: Checkout the repo
@@ -39,9 +38,16 @@ jobs:
             # Step 5: Create gcp-key.json and profiles.yml
             - name: Create GCP Key and profiles.yml
               run: |
-                  echo '${{ secrets.DBT_PROD_KEYFILE }}' > /tmp/service_account.json
+                  # 1. Ensure the .dbt directory exists
+                  mkdir -p /home/runner/.dbt/
 
-                  # Dynamically generate profiles.yml
+                  # 2. Write the GCP service account key from GitHub Secret to a temporary file
+                  echo "${{ secrets.DBT_PROD_KEYFILE }}" > /tmp/service_account.json
+
+                  # 3. Set restrictive permissions on the key file for security
+                  chmod 600 /tmp/service_account.json
+
+                  # 4. Dynamically generate profiles.yml
 
                   cat <<EOF > /home/runner/.dbt/profiles.yml
                   dbt_core_bigquery:
