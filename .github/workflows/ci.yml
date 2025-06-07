@@ -70,7 +70,7 @@ jobs:
                         type: bigquery
 
                     target: dev
-                    EOF
+                  EOF
 
             # Step 6: Install dbt project dependencies
             # IMPORTANT: Activate the virtual environment before running dbt commands
