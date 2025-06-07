@@ -63,7 +63,7 @@ jobs:
                         job_retries: 1
                         keyfile: /tmp/service_account.json
                         location: US
-                        method: service-account
+                        method: service_account_json
                         priority: interactive
                         project: dbt-core-bq-learn # Consider using a variable for this too
                         threads: 1
