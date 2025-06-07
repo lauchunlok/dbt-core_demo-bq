@@ -1,7 +1,7 @@
-name: CI
+name: CD
 
 on:
-    pull_request:
+    push:
         branches: [main]
 
 jobs:
@@ -56,8 +56,8 @@ jobs:
                   cat <<EOF > /home/runner/.dbt/profiles.yml
                   dbt_core_bigquery:
                     outputs:
-                      dev:
-                        dataset: dbt_core_clau
+                      prod:
+                        dataset: dbt_prod
                         job_execution_timeout_seconds: 300
                         job_retries: 1
                         keyfile: /tmp/service_account.json
@@ -67,7 +67,7 @@ jobs:
                         project: dbt-core-bq-learn # Consider using a variable for this too
                         threads: 1
                         type: bigquery
-                    target: dev
+                    target: prod
                   EOF
 
             # Step 6: Install dbt project dependencies
@@ -84,4 +84,4 @@ jobs:
               run: |
                   source dbt_bigquery_venv/bin/activate # Activate venv
                   # Ensure the --profiles-dir and --target match your setup
-                  dbt build --profiles-dir /home/runner/.dbt --target dev
+                  dbt build --profiles-dir /home/runner/.dbt --target prod
