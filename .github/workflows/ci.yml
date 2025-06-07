@@ -9,7 +9,6 @@ jobs:
         runs-on: ubuntu-latest
 
         env:
-            GCP_PROJECT_ID: "{{ env_var('GCP_PROJECT_ID') }}"
             DBT_GCP_PROJECT_ID: ${{ secrets.DBT_GCP_PROJECT_ID }}
             DBT_PROFILES_DIR: .
 
@@ -42,11 +41,13 @@ jobs:
               run: |
                   echo '${{ secrets.DBT_PROD_KEYFILE }}' > /tmp/service_account.json
 
+                  # Dynamically generate profiles.yml
+
                   cat <<EOF > /home/runner/.dbt/profiles.yml
                   dbt_core_bigquery:
                   outputs:
                       dev:
-                      dataset: dbt_prod
+                      dataset: dbt_core_clau
                       job_execution_timeout_seconds: 300
                       job_retries: 1
                       keyfile: /tmp/service_account.json
