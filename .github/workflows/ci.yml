@@ -57,7 +57,7 @@ jobs:
                   cat <<EOF > /home/runner/.dbt/profiles.yml
                   dbt_core_bigquery:
                     outputs:
-                        dev:
+                      dev:
                         dataset: dbt_core_clau
                         job_execution_timeout_seconds: 300
                         job_retries: 1
@@ -68,7 +68,6 @@ jobs:
                         project: dbt-core-bq-learn # Consider using a variable for this too
                         threads: 1
                         type: bigquery
-
                     target: dev
                   EOF
 
