@@ -10,7 +10,7 @@ jobs:
 
         env:
             # Note: Typo in original - 'BT_PROFILES_DIR' should be 'DBT_PROFILES_DIR'
-            DBT_PROFILES_DIR: /home/runner/.dbt/ 
+            DBT_PROFILES_DIR: /home/runner/.dbt/
             # You might want to define your GCP_PROJECT_ID here as well
             # GCP_PROJECT_ID: your-gcp-project-id-here
 
@@ -70,7 +70,7 @@ jobs:
                         type: bigquery
 
                     target: dev
-            EOF
+                    EOF
 
             # Step 6: Install dbt project dependencies
             # IMPORTANT: Activate the virtual environment before running dbt commands
