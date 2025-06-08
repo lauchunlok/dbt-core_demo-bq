@@ -44,7 +44,7 @@ jobs:
                   # Create .dbt directory
                   mkdir -p ${{ github.workspace }}/.dbt
                   # Write credentials file
-                  echo "${DBT_PROD_KEYFILE}" > ${{ github.workspace }}/.dbt/service_account.json
+                  echo "${{ secrets.DBT_PROD_KEYFILE }}" | base64 -d > ${{ github.workspace }}/.dbt/service_account.json
                   # Normalize line endings
                   cat ${{ github.workspace }}/.dbt/service_account.json | tr -d '\r' > ${{ github.workspace }}/.dbt/service_account.json.tmp
                   mv ${{ github.workspace }}/.dbt/service_account.json.tmp ${{ github.workspace }}/.dbt/service_account.json
