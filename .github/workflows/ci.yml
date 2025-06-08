@@ -37,20 +37,11 @@ jobs:
               env:
                   DBT_PROD_KEYFILE: ${{ secrets.DBT_PROD_KEYFILE }}
               run: |
-                  # Create .dbt directory in workspace
                   mkdir -p ${{ github.workspace }}/.dbt
-
-                  # Write GCP service account key
                   echo "${DBT_PROD_KEYFILE}" > ${{ github.workspace }}/.dbt/service_account.json
-
-                  # Normalize line endings to avoid issues
                   cat ${{ github.workspace }}/.dbt/service_account.json | tr -d '\r' > ${{ github.workspace }}/.dbt/service_account.json.tmp
                   mv ${{ github.workspace }}/.dbt/service_account.json.tmp ${{ github.workspace }}/.dbt/service_account.json
-
-                  # Set restrictive permissions
                   chmod 600 ${{ github.workspace }}/.dbt/service_account.json
-
-                  # Generate profiles.yml
                   cat <<EOF > ${{ github.workspace }}/.dbt/profiles.yml
                   dbt_core_bigquery:
                     outputs:
@@ -68,21 +59,41 @@ jobs:
                     target: dev
                   EOF
 
-            # Step 5: Install dbt project dependencies
-            # IMPORTANT: Activate the virtual environment before running dbt commands
+            # Step 5: Validate credentials file
+            - name: Validate credentials file
+              run: |
+                  cat ${{ github.workspace }}/.dbt/service_account.json | jq .
+                  echo "Credentials file validated successfully"
+
+            # Step 6: Check credentials file existence
+            - name: Check credentials file existence
+              run: |
+                  ls -l ${{ github.workspace }}/.dbt/service_account.json
+                  head -n 5 ${{ github.workspace }}/.dbt/service_account.json
+
+            # Step 7: Set up Google Cloud SDK
+            - name: Set up Google Cloud SDK
+              uses: google-github-actions/setup-gcloud@v1
+
+            # Step 8: Test BigQuery connection
+            - name: Test BigQuery connection
+              run: |
+                  gcloud auth activate-service-account --key-file=${{ github.workspace }}/.dbt/service_account.json
+                  bq show --project_id=${{ env.GCP_PROJECT_ID }} ${{ env.GCP_PROJECT_ID }}:dbt_core_clau
+
+            # Step 9: Install dbt project dependencies
             - name: Install dbt project dependencies
               run: |
-                  source dbt_bigquery_venv/bin/activate # Activate venv
-                  dbt deps
-              # The env section is handled by the 'source' command within this step's shell
+                  source dbt_bigquery_venv/bin/activate
+                  dbt deps --project-dir=${{ github.workspace }}
 
-            # Step 6: Run dbt debug
+            # Step 10: Run dbt debug
             - name: Run dbt debug
               run: |
                   source dbt_bigquery_venv/bin/activate
                   dbt debug --profiles-dir=${{ env.DBT_PROFILES_DIR }} --target dev
 
-            # Step 7: Run dbt tests
+            # Step 11: Run dbt tests
             - name: Run dbt tests
               run: |
                   source dbt_bigquery_venv/bin/activate
