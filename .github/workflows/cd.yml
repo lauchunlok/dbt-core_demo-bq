@@ -44,7 +44,7 @@ jobs:
             - name: Create GCP Key and profiles.yml
               run: |
                   # 1. Ensure the .dbt directory exists
-                  mkdir -p /home/runner/.dbt/
+                  mkdir -p ${{ github.workspace }}/.dbt
 
                   # 2. Write the GCP service account key from GitHub Secret to a temporary file
                   #    Ensure 'DBT_PROD_KEYFILE' secret contains the full JSON content
