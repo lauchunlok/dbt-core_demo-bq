@@ -79,32 +79,32 @@ jobs:
                     target: dev
                   EOF
 
-            # Step 6: Debug credentials file
-            - name: Debug credentials file
-              run: |
-                  echo "Checking credentials file existence and content"
-                  ls -l ${{ github.workspace }}/.dbt/service_account.json
-                  echo "First 5 lines of service_account.json (redacted):"
-                  head -n 5 ${{ github.workspace }}/.dbt/service_account.json
-                  echo "Validating JSON with jq"
-                  cat ${{ github.workspace }}/.dbt/service_account.json | jq . || echo "JSON validation failed"
-                  # Try base64 decoding
-                  echo "${{ secrets.DBT_PROD_KEYFILE }}" | base64 -d > ${{ github.workspace }}/.dbt/service_account_base64.json 2>/dev/null || echo "Base64 decode failed"
-                  if [ -s ${{ github.workspace }}/.dbt/service_account_base64.json ]; then
-                    echo "Base64 decoded file content (first 5 lines):"
-                    head -n 5 ${{ github.workspace }}/.dbt/service_account_base64.json
-                    cat ${{ github.workspace }}/.dbt/service_account_base64.json | jq . || echo "Base64 JSON validation failed"
-                  fi
+            # # Step 6: Debug credentials file
+            # - name: Debug credentials file
+            #   run: |
+            #       echo "Checking credentials file existence and content"
+            #       ls -l ${{ github.workspace }}/.dbt/service_account.json
+            #       echo "First 5 lines of service_account.json (redacted):"
+            #       head -n 5 ${{ github.workspace }}/.dbt/service_account.json
+            #       echo "Validating JSON with jq"
+            #       cat ${{ github.workspace }}/.dbt/service_account.json | jq . || echo "JSON validation failed"
+            #       # Try base64 decoding
+            #       echo "${{ secrets.DBT_PROD_KEYFILE }}" | base64 -d > ${{ github.workspace }}/.dbt/service_account_base64.json 2>/dev/null || echo "Base64 decode failed"
+            #       if [ -s ${{ github.workspace }}/.dbt/service_account_base64.json ]; then
+            #         echo "Base64 decoded file content (first 5 lines):"
+            #         head -n 5 ${{ github.workspace }}/.dbt/service_account_base64.json
+            #         cat ${{ github.workspace }}/.dbt/service_account_base64.json | jq . || echo "Base64 JSON validation failed"
+            #       fi
 
-            # Step 7: Set up Google Cloud SDK
-            - name: Set up Google Cloud SDK
-              uses: google-github-actions/setup-gcloud@v1
+            # # Step 7: Set up Google Cloud SDK
+            # - name: Set up Google Cloud SDK
+            #   uses: google-github-actions/setup-gcloud@v1
 
-            # Step 8: Test BigQuery connection
-            - name: Test BigQuery connection
-              run: |
-                  gcloud auth activate-service-account --key-file=${{ github.workspace }}/.dbt/service_account.json
-                  bq show --project_id=${{ env.GCP_PROJECT_ID }} ${{ env.GCP_PROJECT_ID }}:dbt_core_clau
+            # # Step 8: Test BigQuery connection
+            # - name: Test BigQuery connection
+            #   run: |
+            #       gcloud auth activate-service-account --key-file=${{ github.workspace }}/.dbt/service_account.json
+            #       bq show --project_id=${{ env.GCP_PROJECT_ID }} ${{ env.GCP_PROJECT_ID }}:dbt_core_clau
 
             # Step 9: Install dbt project dependencies
             - name: Install dbt project dependencies

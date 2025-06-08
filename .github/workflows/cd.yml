@@ -1,17 +1,18 @@
-name: CD
+name: dbt CD
 
 on:
     push:
         branches: [main]
 
 jobs:
-    test:
+    CD:
         runs-on: ubuntu-latest
+        environment: dbt-prod
 
         env:
-            # Note: Typo in original - 'BT_PROFILES_DIR' should be 'DBT_PROFILES_DIR'
-            DBT_PROFILES_DIR: /home/runner/.dbt/
-            # GCP_PROJECT_ID: your-gcp-project-id-here
+            DBT_PROFILES_DIR: ${{ github.workspace }}/.dbt
+            GCP_PROJECT_ID: dbt-core-bq-learn
+            DBT_PROD_KEYFILE: ${{ secrets.DBT_PROD_KEYFILE }}
 
         steps:
             # Step 1: Checkout the repo
@@ -47,24 +48,21 @@ jobs:
 
                   # 2. Write the GCP service account key from GitHub Secret to a temporary file
                   #    Ensure 'DBT_PROD_KEYFILE' secret contains the full JSON content
-                  echo "${{ secrets.DBT_PROD_KEYFILE }}" > /tmp/service_account.json
+                  echo "${{ secrets.DBT_PROD_KEYFILE }}" > ${{ github.workspace }}/.dbt/service_account.json
 
-                  # 3. Set restrictive permissions on the key file for security
-                  chmod 600 /tmp/service_account.json
-
-                  # 4. Dynamically generate profiles.yml
-                  cat <<EOF > /home/runner/.dbt/profiles.yml
+                  # 3. Dynamically generate profiles.yml
+                  cat <<EOF > ${{ github.workspace }}/.dbt/profiles.yml
                   dbt_core_bigquery:
                     outputs:
                       prod:
                         dataset: dbt_prod
                         job_execution_timeout_seconds: 300
                         job_retries: 1
-                        keyfile: /tmp/service_account.json
+                        keyfile: ${{ github.workspace }}/.dbt/service_account.json
                         location: US
                         method: service-account
                         priority: interactive
-                        project: dbt-core-bq-learn # Consider using a variable for this too
+                        project: ${{ env.GCP_PROJECT_ID }}
                         threads: 1
                         type: bigquery
                     target: prod
@@ -84,4 +82,4 @@ jobs:
               run: |
                   source dbt_bigquery_venv/bin/activate # Activate venv
                   # Ensure the --profiles-dir and --target match your setup
-                  dbt build --profiles-dir /home/runner/.dbt --target prod
+                  dbt build --profiles-dir=${{ env.DBT_PROFILES_DIR }} --target prod --debug
