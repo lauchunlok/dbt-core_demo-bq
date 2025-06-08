@@ -29,7 +29,7 @@ jobs:
                   python -m pip install --upgrade pip setuptools wheel
                   python -m venv dbt_bigquery_venv
                   source dbt_bigquery_venv/bin/activate
-                  pip install dbt-core==1.9.6 dbt-bigquery==1.9.6 jq
+                  pip install dbt-core dbt-bigquery jq
 
             # Step 4: Create .dbt directory and credentials file
             - name: Create GCP key and profiles.yml
