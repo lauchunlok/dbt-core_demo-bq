@@ -1,0 +1,85 @@
+name: dbt CD
+
+on:
+    push:
+        branches: [main]
+
+jobs:
+    CD:
+        runs-on: ubuntu-latest
+        environment: dbt-prod
+
+        env:
+            DBT_PROFILES_DIR: ${{ github.workspace }}/.dbt
+            GCP_PROJECT_ID: dbt-core-bq-learn
+            DBT_PROD_KEYFILE: ${{ secrets.DBT_PROD_KEYFILE }}
+
+        steps:
+            # Step 1: Checkout the repo
+            - name: Checkout repo
+              uses: actions/checkout@v3
+
+            # Step 2: Set up the Python environment
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.11"
+
+            # Step 3: Upgrade pip and setuptools
+            - name: Upgrade pip and setuptools
+              run: |
+                  python -m pip install --upgrade pip setuptools wheel
+
+            # Step 4: Set up virtual environment and install dependencies
+            # This step creates the venv and installs dbt into it.
+            # The 'activate' command's effect is *local to this 'run' block*.
+            - name: Set up Virtual Environment and Install dbt
+              run: |
+                  python -m venv dbt_bigquery_venv
+                  source dbt_bigquery_venv/bin/activate
+                  pip install dbt-core dbt-bigquery
+
+            # Step 5: Create gcp-key.json and profiles.yml
+            # This step does NOT need the venv activated as it's only creating files.
+            - name: Create GCP Key and profiles.yml
+              run: |
+                  # 1. Ensure the .dbt directory exists
+                  mkdir -p /home/runner/.dbt/
+
+                  # 2. Write the GCP service account key from GitHub Secret to a temporary file
+                  #    Ensure 'DBT_PROD_KEYFILE' secret contains the full JSON content
+                  echo "${{ secrets.DBT_PROD_KEYFILE }}" > ${{ github.workspace }}/.dbt/service_account.json
+
+                  # 3. Dynamically generate profiles.yml
+                  cat <<EOF > ${{ github.workspace }}/.dbt/profiles.yml
+                  dbt_core_bigquery:
+                    outputs:
+                      prod:
+                        dataset: dbt_prod
+                        job_execution_timeout_seconds: 300
+                        job_retries: 1
+                        keyfile: ${{ github.workspace }}/.dbt/service_account.json
+                        location: US
+                        method: service-account
+                        priority: interactive
+                        project: ${{ env.GCP_PROJECT_ID }}
+                        threads: 1
+                        type: bigquery
+                    target: prod
+                  EOF
+
+            # Step 6: Install dbt project dependencies
+            # IMPORTANT: Activate the virtual environment before running dbt commands
+            - name: Install dbt project dependencies
+              run: |
+                  source dbt_bigquery_venv/bin/activate # Activate venv
+                  dbt deps
+              # The env section is handled by the 'source' command within this step's shell
+
+            # Step 7: Run dbt Tests
+            # IMPORTANT: Activate the virtual environment again
+            - name: Run dbt Tests
+              run: |
+                  source dbt_bigquery_venv/bin/activate # Activate venv
+                  # Ensure the --profiles-dir and --target match your setup
+                  dbt build --profiles-dir=${{ env.DBT_PROFILES_DIR }} --target prod --debug
