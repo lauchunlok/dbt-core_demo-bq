@@ -8,7 +8,7 @@ jobs:
     test:
         runs-on: ubuntu-latest
         # Skip forks where secrets are unavailable
-        if: github.event_name != 'pull_request' || github.repository == github.repository_owner + '/dbt-core_demo-bq'
+        if: github.event_name != 'pull_request' || github.repository == format('{0}/dbt-core_demo-bq', github.repository_owner)
 
         env:
             DBT_PROFILES_DIR: ${{ github.workspace }}/.dbt
