@@ -14,6 +14,7 @@ jobs:
         env:
             DBT_PROFILES_DIR: ${{ github.workspace }}/.dbt
             GCP_PROJECT_ID: dbt-core-bq-learn
+            DBT_PROD_KEYFILE: ${{ secrets.DBT_PROD_KEYFILE }}
 
         steps:
             # Step 1: Checkout repo
@@ -36,8 +37,7 @@ jobs:
 
             # Step 4: Debug secret availability
             - name: Debug secret availability
-              env:
-                  DBT_PROD_KEYFILE: ${{ secrets.DBT_PROD_KEYFILE }}
+
               run: |
                   echo "GitHub event: ${{ github.event_name }}"
                   echo "Repository: ${{ github.repository }}"
@@ -51,8 +51,6 @@ jobs:
 
             # Step 5: Create .dbt directory and credentials file
             - name: Create GCP key and profiles.yml
-              env:
-                  DBT_PROD_KEYFILE: ${{ secrets.DBT_PROD_KEYFILE }}
               run: |
                   # Create .dbt directory
                   mkdir -p ${{ github.workspace }}/.dbt
