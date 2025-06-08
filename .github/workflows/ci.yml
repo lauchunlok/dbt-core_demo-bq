@@ -11,8 +11,7 @@ jobs:
         env:
             # Note: Typo in original - 'BT_PROFILES_DIR' should be 'DBT_PROFILES_DIR'
             DBT_PROFILES_DIR: /home/runner/.dbt/
-            # You might want to define your GCP_PROJECT_ID here as well
-            # GCP_PROJECT_ID: your-gcp-project-id-here
+            environment: dbt-prod
 
         steps:
             # Step 1: Checkout the repo
@@ -85,4 +84,4 @@ jobs:
               run: |
                   source dbt_bigquery_venv/bin/activate # Activate venv
                   # Ensure the --profiles-dir and --target match your setup
-                  dbt test --profiles-dir /home/runner/.dbt --target dev
+                  dbt build --profiles-dir /home/runner/.dbt --target dev
